@@ -5,10 +5,11 @@ import time
 import re
 
 client = discord.Client()
-VERSION = 1.0.0
+VERSION = '1.0.1'
 
 # 鍵の読み込み
-with open('KEY.txt', 'r') as f:
+KEY = None
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 bot_voice = None
@@ -69,15 +70,15 @@ async def on_message(message):
                 messagelist.append("無名")
 
             print(finish_time)
-            await client.send_message(message.channel, str(int(finish_time / 60))+'分後に '+ messagelist[3] +' のアラートを行います')
+            await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
 
             # with open('timeData.txt', 'a') as f:
             #     f.write(str(finish_time))
 
             await asyncio.sleep(finish_time)
-            await client.send_message(message.channel, '@here '+messagelist[3]+'の時間です')
+            await client.send_message(message.channel, '@here `'+messagelist[3]+'`の時間です')
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
-        
+
 client.run(KEY)
