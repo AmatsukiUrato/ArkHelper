@@ -1,5 +1,9 @@
 # Infomation
 DiscordのArk用Bot．
+python3.6で実装．
+
+# Command
+`!ark help`で確認して下さい．
 
 # Future
 - Timerの音声アラームを実装
