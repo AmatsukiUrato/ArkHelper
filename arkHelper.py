@@ -5,6 +5,7 @@ import time
 import re
 
 client = discord.Client()
+VERSION = 1.0.0
 
 # 鍵の読み込み
 with open('KEY.txt', 'r') as f:
@@ -96,4 +97,6 @@ async def on_message(message):
     elif message.content.startswith('!ark disconnect'):
         await bot_voice.disconnect()
 
+    elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
+        await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
 client.run(KEY)
