@@ -76,27 +76,8 @@ async def on_message(message):
 
             await asyncio.sleep(finish_time)
             await client.send_message(message.channel, '@here '+messagelist[3]+'の時間です')
-            if client.is_voice_connected(bot_server):
-                player = await bot_voice.create_ytdl_player(alertlink)
-                player.volume = 0.1
-                player.start()
-                time.sleep(60)
-                player.stop()
-
-    elif message.content.startswith('!ark summon'):
-        global bot_voice
-        global bot_server
-        bot_voice = await client.join_voice_channel(message.author.voice.voice_channel)
-        bot_server = bot_voice.server
-
-    elif message.content.startswith('!ark setalert '):
-            global alertlink
-            alertlink = message.content[14:]
-            await client.send_message(message.channel, 'アラートを<'+alertlink+'>に設定しました\nアラートは`!ark summon`をしていない場合機能しません．')
-
-    elif message.content.startswith('!ark disconnect'):
-        await bot_voice.disconnect()
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
+        
 client.run(KEY)
