@@ -5,7 +5,7 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 
 # 鍵の読み込み
 KEY = None
@@ -34,7 +34,7 @@ async def on_ready():
 async def on_message(message):
     # ArkTimerの使い方説明
     if message.content.startswith('!ark help'):
-        text = '```js\n[1]!ark help - この説明文を表示する．\n\n[2]!ark link - Arkをやる上で知ってたら便利なリンク集．\n\n[3]!ark timer - ケア用のタイマー．\n"!ark timer"の後に"0~99:0~59"or"1~99h"or"1~999m"を入力することで時間を測れる．タイマーの後にタイトルも入力できる．\n\n[4](未)!ark timerlist - 現在のケア用タイマー一覧．\n"!ark timer"で登録したタイマーの一覧が見れる．\n\n[5](未)!ark summon - ArkHelperをボイスチャンネルに呼ぶ．\nタイマーでYoutubeの動画音声を流したい場合は呼ぶ必要あり．\n\n[6](未)!ark disconnect - ArkHelperをボイスチャンネルから退ける．\n"!ark summon"で呼んだ後，戻すときに使う．\n\n[7](未)!ark setalert - timer用のYoutube動画をセットする．\n"!ark setalert youtubeのリンク"で登録を行う．\n\n[7](未)!ark -v|!ark version - botのバージョンを表示する．```'
+        text = '```js\n[1]!ark help - この説明文を表示する．\n\n[2]!ark link - Arkをやる上で知ってたら便利なリンク集．\n\n[3]!ark timer - ケア用のタイマー．\n"!ark timer"の後に"0~99:0~59"or"1~99h"or"1~999m"を入力することで時間を測れる．タイマーの後にタイトルも入力できる．\n\n[4](未)!ark timerlist - 現在のケア用タイマー一覧．\n"!ark timer"で登録したタイマーの一覧が見れる．\n\n[5](未)!ark summon - ArkHelperをボイスチャンネルに呼ぶ．\nタイマーでYoutubeの動画音声を流したい場合は呼ぶ必要あり．\n\n[6](未)!ark disconnect - ArkHelperをボイスチャンネルから退ける．\n"!ark summon"で呼んだ後，戻すときに使う．\n\n[7](未)!ark setalert - timer用のYoutube動画をセットする．\n"!ark setalert youtubeのリンク"で登録を行う．\n\n[7]!ark -v|!ark version - botのバージョンを表示する．```'
         await client.send_message(message.channel, text)
 
     # Arkに関係する便利なリンク集
@@ -69,13 +69,14 @@ async def on_message(message):
                 messagelist.append("無名")
 
             print(finish_time)
+            # TODO: 24時間表記で記述
             await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
 
             # with open('timeData.txt', 'a') as f:
             #     f.write(str(finish_time))
 
             await asyncio.sleep(finish_time)
-            await client.send_message(message.channel, '@here `'+messagelist[3]+'`の時間です')
+            await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
