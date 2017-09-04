@@ -9,7 +9,7 @@ VERSION = '1.0.2'
 
 # 鍵の読み込み
 KEY = None
-with open('TESTKEY.txt', 'r') as f:
+with open('KEY.txt', 'r') as f:
     KEY = f.read()
 
 bot_voice = None
