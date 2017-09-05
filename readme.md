@@ -1,6 +1,7 @@
 # Infomation
 DiscordのArk用Bot．
 python3.6で実装．
+Arkに役立つリンクやケア用のタイマー管理を行える．
 
 # How2Use
 1. `git clone https://github.com/AmatsukiUrato/ArkHelper.git`でArkTimerをDownLoadする．
