@@ -2,6 +2,11 @@
 DiscordのArk用Bot．
 python3.6で実装．
 
+# How2Use
+1. `git clone https://github.com/AmatsukiUrato/ArkHelper.git`でArkTimerをDownLoadする．
+2. `KEY.txt`を`arktymer.py`と同じ階層に作成し，DiscordのTokenを入力する．
+3. `arktimer.py`を起動する．
+
 # Command
 `!ark help`で確認して下さい．
 
