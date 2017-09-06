@@ -45,38 +45,42 @@ async def on_message(message):
     # Arkのカウントダウンタイマー
     elif message.content.startswith('!ark timer '):
         messagelist = message.content.split(" ")
-        count_time = messagelist[2]
-        matchOB_hour_minutes = re.match(hour_minutes_pattern, count_time)
-        matchOB_hour = re.match(hour_pattern, count_time)
-        matchOB_minutes = re.match(minutes_pattern, count_time)
 
-        if matchOB_hour_minutes or matchOB_hour or matchOB_minutes:
-            finish_time = 0
-            if matchOB_hour:
-                finish_time = int(count_time[:-1]) * 3600
+        if len(messagelist) > 4:
+            # 5項目以上ある時
+        else:
+            count_time = messagelist[2]
+            matchOB_hour_minutes = re.match(hour_minutes_pattern, count_time)
+            matchOB_hour = re.match(hour_pattern, count_time)
+            matchOB_minutes = re.match(minutes_pattern, count_time)
 
-            if matchOB_minutes:
-                finish_time = int(count_time[:-1]) * 60
+            if matchOB_hour_minutes or matchOB_hour or matchOB_minutes:
+                finish_time = 0
+                if matchOB_hour:
+                    finish_time = int(count_time[:-1]) * 3600
 
-            if matchOB_hour_minutes:
-                finish_time_list = count_time.split(":")
-                finish_time = ( int(finish_time_list[0]) * 60 + int(finish_time_list[1]) ) * 60
+                if matchOB_minutes:
+                    finish_time = int(count_time[:-1]) * 60
 
-            # 空白だった場合の処理
-            print(len(messagelist))
-            print(messagelist)
-            if len(messagelist) < 4:
-                messagelist.append("無名")
+                if matchOB_hour_minutes:
+                    finish_time_list = count_time.split(":")
+                    finish_time = ( int(finish_time_list[0]) * 60 + int(finish_time_list[1]) ) * 60
 
-            print(finish_time)
-            # TODO: 24時間表記で記述
-            await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
+                # 空白だった場合の処理
+                print(len(messagelist))
+                print(messagelist)
+                if len(messagelist) < 4:
+                    messagelist.append("無名")
 
-            # with open('timeData.txt', 'a') as f:
-            #     f.write(str(finish_time))
+                print(finish_time)
+                # TODO: 24時間表記で記述
+                await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
 
-            await asyncio.sleep(finish_time)
-            await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
+                # with open('timeData.txt', 'a') as f:
+                #     f.write(str(finish_time))
+
+                await asyncio.sleep(finish_time)
+                await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
