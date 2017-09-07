@@ -1,4 +1,5 @@
 from ctypes.util import find_library
+from datetime import datetime
 import discord
 import asyncio
 import time
@@ -9,12 +10,11 @@ VERSION = '1.0.3'
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
-bot_voice = None
-bot_server = None
-alertlink = None
+# 登録されたタイマーのリスト
+timerlist = []
 
 hour_minutes_pattern = r"([0-9]|[0-9][0-9]):([0-9]|[0-5][0-9])"
 hour_pattern = r"([1-9]|[1-9][0-9])h"
@@ -48,6 +48,7 @@ async def on_message(message):
 
         if len(messagelist) > 4:
             # 5項目以上ある時
+            pass
         else:
             count_time = messagelist[2]
             matchOB_hour_minutes = re.match(hour_minutes_pattern, count_time)
@@ -67,20 +68,34 @@ async def on_message(message):
                     finish_time = ( int(finish_time_list[0]) * 60 + int(finish_time_list[1]) ) * 60
 
                 # 空白だった場合の処理
-                print(len(messagelist))
-                print(messagelist)
                 if len(messagelist) < 4:
                     messagelist.append("無名")
 
-                print(finish_time)
                 # TODO: 24時間表記で記述
                 await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
 
+                nowtime = datetime.now()
+
+                timerlist.append([messagelist[3],nowtime,finish_time,message.author.name])
                 # with open('timeData.txt', 'a') as f:
                 #     f.write(str(finish_time))
 
                 await asyncio.sleep(finish_time)
                 await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
+
+                for i , ts in enumerate(timerlist):
+                    if ts[i][0] == messagelist[3] and ts[i][1] == nowtime and ts[i][3] == message.author.name:
+                        del timerlist[i]
+
+    elif message.content.startswith('!ark timerlist'):
+        text = '```css\n'
+        for ts in timerlist:
+            remainingtime = int(ts[2] - (datetime.now() - ts[1]).total_seconds())
+
+            text += '・'+ts[0]+ ' by '+ ts[3] + '\n　[残り : ' + str(remainingtime) + '秒]\n\n'
+        text += '```'
+
+        await client.send_message(message.channel, text)
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
