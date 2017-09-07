@@ -10,7 +10,7 @@ VERSION = '1.1.1β'
 
 # 鍵の読み込み
 KEY = None
-with open('TESTKEY.txt', 'r') as f:
+with open('KEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
