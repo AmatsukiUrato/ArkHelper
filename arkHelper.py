@@ -6,7 +6,7 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.1β'
+VERSION = '1.1.2'
 
 # 鍵の読み込み
 KEY = None
@@ -95,7 +95,8 @@ async def on_message(message):
 
             text += '・'+ts[0]+ ' by '+ ts[3] + '\n　[残り : ' + str(remainingtime) + '秒]\n\n'
         text += '```'
-
+        if text == '```css\n```':
+            text = '```何も登録されていません```'
         await client.send_message(message.channel, text)
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
