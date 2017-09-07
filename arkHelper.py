@@ -6,11 +6,11 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.0β'
+VERSION = '1.1.1β'
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
@@ -76,15 +76,16 @@ async def on_message(message):
 
                 nowtime = datetime.now()
 
-                timerlist.append([messagelist[3],nowtime,finish_time,message.author.name])
+                timerlist.append([messagelist[3], nowtime, finish_time, message.author.name])
                 # with open('timeData.txt', 'a') as f:
                 #     f.write(str(finish_time))
 
                 await asyncio.sleep(finish_time)
                 await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
 
+                # 配列の削除
                 for i , ts in enumerate(timerlist):
-                    if ts[i][0] == messagelist[3] and ts[i][1] == nowtime and ts[i][3] == message.author.name:
+                    if ts[0] == messagelist[3] and ts[1] == nowtime and ts[3] == message.author.name:
                         del timerlist[i]
 
     elif message.content.startswith('!ark timerlist'):
