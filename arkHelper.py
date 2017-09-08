@@ -1,16 +1,17 @@
 from ctypes.util import find_library
-from datetime import datetime
+from dateutil.parser import parse
+import datetime
 import discord
 import asyncio
 import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.3'
+VERSION = '1.1.4'
 
 # 鍵の読み込み
 KEY = None
-with open('TESTKEY.txt', 'r') as f:
+with open('KEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
@@ -74,7 +75,7 @@ async def on_message(message):
                 # TODO: 24時間表記で記述
                 await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
 
-                nowtime = datetime.now()
+                nowtime = datetime.datetime.now()
 
                 timerlist.append([messagelist[3], nowtime, finish_time, message.author.name])
                 # with open('timeData.txt', 'a') as f:
@@ -94,9 +95,9 @@ async def on_message(message):
     elif message.content.startswith('!ark timerlist'):
         text = '```css\n'
         for ts in timerlist:
-            remainingtime = int(ts[2] - (datetime.now() - ts[1]).total_seconds())
+            remainingtime = (parse("0s") + datetime.timedelta(seconds=int(ts[2] - (datetime.datetime.now() - ts[1]).total_seconds()))).strftime("%H:%M:%S")
 
-            text += '・'+ts[0]+ ' by '+ ts[3] + '\n　[残り : ' + str(remainingtime) + '秒]\n\n'
+            text += '・'+ts[0]+ ' by '+ ts[3] + '\n　[残り : ' + str(remainingtime) + ']\n\n'
         text += '```'
         if text == '```css\n```':
             text = '```何も登録されていません```'
