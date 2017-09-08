@@ -10,7 +10,7 @@ VERSION = '1.1.2'
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
@@ -81,6 +81,9 @@ async def on_message(message):
                 #     f.write(str(finish_time))
 
                 await asyncio.sleep(finish_time)
+
+                # ここにタイマーリストに存在するかどうかの判定を入れる
+                ####
                 await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
 
                 # 配列の削除
@@ -98,6 +101,16 @@ async def on_message(message):
         if text == '```css\n```':
             text = '```何も登録されていません```'
         await client.send_message(message.channel, text)
+
+    elif message.content.startswith('!ark timerdel '):
+        messagelist = message.content.split(" ")
+        for i , ts in enumerate(timerlist):
+            if messagelist[2] == ts[0]:
+                del timerlist[i]
+                await client.send_message(message.channel, messagelist[2] + 'を削除しました')
+                break
+        else:
+            await client.send_message(message.channel, messagelist[2] + 'は見つかりませんでした')
 
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
