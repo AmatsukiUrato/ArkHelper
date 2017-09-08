@@ -6,7 +6,7 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 
 # 鍵の読み込み
 KEY = None
