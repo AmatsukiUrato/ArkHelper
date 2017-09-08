@@ -7,7 +7,7 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.4'
+VERSION = '1.1.5'
 
 # 鍵の読み込み
 KEY = None
@@ -73,7 +73,9 @@ async def on_message(message):
                     messagelist.append("無名")
 
                 # TODO: 24時間表記で記述
-                await client.send_message(message.channel, str(int(finish_time / 60))+'分後に `'+ messagelist[3] +'` のアラートを行います')
+                await client.send_message(message.channel, '`' + (datetime.datetime.now() + datetime.timedelta(seconds=int(finish_time))).strftime("%H:%M:%S") + '` に `'+ messagelist[3] +'` のアラートを行います')
+
+
 
                 nowtime = datetime.datetime.now()
 
