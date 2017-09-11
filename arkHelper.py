@@ -33,17 +33,30 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+
+
+
+    ####################
     # ArkTimerの使い方説明
+    ####################
     if message.content.startswith('!ark help'):
         text = '```js\n[1]!ark help - この説明文を表示する．\n\n[2]!ark link - Arkをやる上で知ってたら便利なリンク集．\n\n[3]!ark timer - ケア用のタイマー．\n"!ark timer"の後に"0~99:0~59"or"1~99h"or"1~999m"を入力することで時間を測れる．タイマーの後にタイトルも入力できる．\n\n[4]!ark timerlist - 現在のケア用タイマー一覧．\n"!ark timer"で登録したタイマーの一覧が見れる．\n\n[5](未)!ark summon - ArkHelperをボイスチャンネルに呼ぶ．\nタイマーでYoutubeの動画音声を流したい場合は呼ぶ必要あり．\n\n[6](未)!ark disconnect - ArkHelperをボイスチャンネルから退ける．\n"!ark summon"で呼んだ後，戻すときに使う．\n\n[7](未)!ark setalert - timer用のYoutube動画をセットする．\n"!ark setalert youtubeのリンク"で登録を行う．\n\n[7]!ark -v|!ark version - botのバージョンを表示する．```'
         await client.send_message(message.channel, text)
 
+
+
+    #########################
     # Arkに関係する便利なリンク集
+    #########################
     elif message.content.startswith('!ark link'):
         text = '__[1]Ark Officital wiki__ - <https://ark.gamepedia.com/ARK_Survival_Evolved_Wiki>\n\n__[2]Ark Japan wiki__ - <http://wikiwiki.jp/arkse/>\n\n__[3]DODOREX__ - <http://www.dododex.com/>\n\n__[4]ARK Community Forums__ - <https://survivetheark.com/>\n\n__[5]Ark wiki/Resource_Map__ - <https://ark.gamepedia.com/Resource_Map>\n\n__[6]Ark PatchNote__ - <https://steamcommunity.com/app/346110/discussions/0/594820656447032287/?l=japanese>'
         await client.send_message(message.channel, text)
 
+
+
+    #########################
     # Arkのカウントダウンタイマー
+    #########################
     elif message.content.startswith('!ark timer '):
         messagelist = message.content.split(" ")
 
@@ -94,6 +107,11 @@ async def on_message(message):
                     if ts[0] == messagelist[3] and ts[1] == nowtime and ts[3] == message.author.name:
                         del timerlist[i]
 
+
+
+    ################################
+    # 現在登録されているタイマー一覧を表示
+    ################################
     elif message.content.startswith('!ark timerlist'):
         text = '```css\n'
         for ts in timerlist:
@@ -105,6 +123,11 @@ async def on_message(message):
             text = '```何も登録されていません```'
         await client.send_message(message.channel, text)
 
+
+
+    ##############################
+    # 登録されているタイマーの削除を行う
+    ##############################
     elif message.content.startswith('!ark timerdel '):
         messagelist = message.content.split(" ")
         for i , ts in enumerate(timerlist):
@@ -115,6 +138,11 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, messagelist[2] + 'は見つかりませんでした')
 
+
+
+    ################################
+    # ArkHelperBotのバージョンを表示する
+    ################################
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
 
