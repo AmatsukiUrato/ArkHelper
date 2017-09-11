@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ctypes.util import find_library
 from dateutil.parser import parse
 import datetime
