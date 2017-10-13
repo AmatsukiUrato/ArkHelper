@@ -9,7 +9,7 @@ import time
 import re
 
 client = discord.Client()
-VERSION = '1.1.5'
+__version__ = '1.1.5'
 
 # 鍵の読み込み
 KEY = None
@@ -146,7 +146,7 @@ async def on_message(message):
     # ArkHelperBotのバージョンを表示する
     ################################
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
-        await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
+        await client.send_message(message.channel, 'Botのバージョンは'+ __version__ +'です．')
 
 # Run
 client.run(KEY)
