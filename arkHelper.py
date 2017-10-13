@@ -13,7 +13,7 @@ __version__ = '1.1.5'
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
@@ -32,6 +32,8 @@ async def on_ready():
     print('------')
     if not discord.opus.is_loaded():
         discord.opus.load_opus(find_library("opus"))
+
+
 
 @client.event
 async def on_message(message):
@@ -59,7 +61,7 @@ async def on_message(message):
     #########################
     # Arkのカウントダウンタイマー
     #########################
-    elif message.content.startswith('!ark timer '):
+    elif message.content.startswith('!ark timer'):
         messagelist = message.content.split(" ")
 
         if len(messagelist) > 4:
@@ -130,7 +132,7 @@ async def on_message(message):
     ##############################
     # 登録されているタイマーの削除を行う
     ##############################
-    elif message.content.startswith('!ark timerdel '):
+    elif message.content.startswith('!ark timerdel'):
         messagelist = message.content.split(" ")
         for i , ts in enumerate(timerlist):
             if messagelist[2] == ts[0]:
@@ -142,11 +144,31 @@ async def on_message(message):
 
 
 
+    #########################
+    # お知らせの追加
+    #########################
+    elif message.content.startswith('!ark notice'):
+        messagelist = message.content.split(" ")
+        if len(messagelist) > 2:
+            with open('notice.txt', 'w') as n:
+                n.write(message.content.replace('!ark notice ',''))
+
+
     ################################
     # ArkHelperBotのバージョンを表示する
     ################################
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+ __version__ +'です．')
+
+
+
+@client.event
+async def on_member_join(member):
+    print('join channnel!')
+    with open('notice.txt', 'r') as n:
+        client.send_message(member.private_channels, n.read())
+
+
 
 # Run
 client.run(KEY)
