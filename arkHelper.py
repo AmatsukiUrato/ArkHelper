@@ -13,7 +13,7 @@ VERSION = '1.1.5'
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 # 登録されたタイマーのリスト
@@ -148,4 +148,5 @@ async def on_message(message):
     elif message.content.startswith('!ark -v') or message.content.startswith('!ark version'):
         await client.send_message(message.channel, 'Botのバージョンは'+VERSION+'です．')
 
+# Run
 client.run(KEY)
