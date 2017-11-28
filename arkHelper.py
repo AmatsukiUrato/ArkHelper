@@ -4,26 +4,35 @@ from ctypes.util import find_library
 from dateutil.parser import parse
 import datetime
 import discord
+import sqlite3
 import asyncio
 import time
 import re
 
-client = discord.Client()
+# version
 __version__ = '1.1.5'
+
+
+
+# Discord.pyの読み込み
+client = discord.Client()
 
 # 鍵の読み込み
 KEY = None
 with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
+# データベースの読み込み
+dbname = 'ark.db'
+conn = sqlite3.connect(dbname)
+c = conn.cursor()
+
 # 登録されたタイマーのリスト
 timerlist = []
 
-hour_minutes_pattern = r"([0-9]|[0-9][0-9]):([0-9]|[0-5][0-9])"
-hour_pattern = r"([1-9]|[1-9][0-9])h"
-minutes_pattern = r"([1-9]|[1-9][0-9]|[1-9][0-9][0-9])m"
 
 
+# Botが接続出来たとき
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -33,8 +42,15 @@ async def on_ready():
     if not discord.opus.is_loaded():
         discord.opus.load_opus(find_library("opus"))
 
+    #テーブルの存在確認
+    tablename = "arktimer"
+    c.execute("SELECT * FROM sqlite_master WHERE type='table' and name='%s'" % tablename)
+    if not c.fetchone():
+        c.execute("CREATE TABLE %s(id INTEGER, name TEXT, hp INTEGER, mp INTEGER)" % tablename)
 
 
+
+# メッセージを受け取った時(チャット文が飛んできた時)
 @client.event
 async def on_message(message):
 
@@ -69,9 +85,10 @@ async def on_message(message):
             pass
         else:
             count_time = messagelist[2]
-            matchOB_hour_minutes = re.match(hour_minutes_pattern, count_time)
-            matchOB_hour = re.match(hour_pattern, count_time)
-            matchOB_minutes = re.match(minutes_pattern, count_time)
+            # Arktimerに使われる正規表現
+            matchOB_hour_minutes = re.match(r"([0-9]|[0-9][0-9]):([0-9]|[0-5][0-9])", count_time)
+            matchOB_hour = re.match(r"([1-9]|[1-9][0-9])h", count_time)
+            matchOB_minutes = re.match(r"([1-9]|[1-9][0-9]|[1-9][0-9][0-9])m", count_time)
 
             if matchOB_hour_minutes or matchOB_hour or matchOB_minutes:
                 finish_time = 0
@@ -154,6 +171,7 @@ async def on_message(message):
                 n.write(message.content.replace('!ark notice ',''))
 
 
+
     ################################
     # ArkHelperBotのバージョンを表示する
     ################################
@@ -165,10 +183,21 @@ async def on_message(message):
 @client.event
 async def on_member_join(member):
     print('join channnel!')
-    with open('notice.txt', 'r') as n:
-        client.send_message(member.private_channels, n.read())
+    # with open('notice.txt', 'r') as n:
+    #     client.send_message(member.private_channels, n.read())
 
 
+
+@client.event
+async def on_server_join(server):
+    print('on_server_join')
+    # with open('notice.txt', 'r') as n:
+        # client.send_message(member.private_channels, n.read())
+
+@client.event
+async def on_voice_state_update(before, after):
+    print(before.server.name)
+    print('on_voice_state_update')
 
 # Run
 client.run(KEY)
