@@ -51,30 +51,10 @@ async def on_ready():
     # テーブル内のタイマー切れ確認
     # TODO:再起動後にタイマーを読み込めるようにする
     for row in c.execute("SELECT * FROM arktimer"):
-        remaining_time = (datetime.datetime.strptime(row[3],'%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now()).total_seconds()
-        if remaining_time <= 0:
-            # 配列の削除
-            c.execute("DELETE FROM arktimer WHERE id=?",(row[0],))
-            conn.commit()
-        else:
-            loop = asyncio.get_event_loop()
-            future = loop.create_future()
-            loop.call_soon(set_before_timer, int(remaining_time/60), row, future)
-            loop.run_until_complete(future)
-            loop.close()
-
-
-async def set_before_timer(finish_time, row):
-    # 指定した時間止める
-    if not future.done():
-        await asyncio.sleep(finish_time)
-
-        # 通知の表示
-        await client.send_message(client.get_channel(row[5]), '@here `'+row[1]+'` の時間です by '+row[4]+'')
-
-        # 配列の削除
-        c.execute("DELETE FROM arktimer WHERE id = ?", (row[0],))
+        c.execute("DELETE FROM arktimer")
         conn.commit()
+
+
 
 
 
