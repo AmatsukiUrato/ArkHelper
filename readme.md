@@ -2,13 +2,13 @@
 
 ## Infomation
 ### English
-DiscordBot for Ark:SurvivalEvolved
-Used python3.6/sqlite3
+DiscordBot for Ark:SurvivalEvolved.  
+Used python3.6/sqlite3.  
 This bot can management dino's caretime and etc..
 
 ### Japanese
-DiscordのArk用Bot．
-python3.6/sqlite3で実装．
+DiscordのArk用Bot．  
+python3.6/sqlite3で実装．  
 Arkに役立つリンクやケア用のタイマー管理を行える．
 
 ## How2Use
