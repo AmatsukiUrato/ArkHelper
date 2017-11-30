@@ -9,6 +9,7 @@ import asyncio
 import time
 import re
 
+
 # version
 __version__ = '2.0.0'
 
@@ -19,7 +20,7 @@ client = discord.Client()
 
 # 鍵の読み込み
 KEY = None
-with open('KEY.txt', 'r') as f:
+with open('TESTKEY.txt', 'r') as f:
     KEY = f.read()
 
 # データベースの読み込み
@@ -43,16 +44,37 @@ async def on_ready():
     c.execute("SELECT * FROM sqlite_master WHERE type='table' and name='%s'" % tablename)
     if not c.fetchone():
         # id, 名前，現在のタイム，アラート終了予定タイム，入力した人
-        c.execute("CREATE TABLE %s(id INTEGER PRIMARY KEY, title TEXT, at_registration_time TEXT, finish_time TEXT, register_name TEXT)" % tablename)
+        c.execute("CREATE TABLE %s(id INTEGER PRIMARY KEY, title TEXT, at_registration_time TEXT, finish_time TEXT, register_name TEXT, notice_channel_id TEXT)" % tablename)
         conn.commit()
 
 
     # テーブル内のタイマー切れ確認
+    # TODO:再起動後にタイマーを読み込めるようにする
     for row in c.execute("SELECT * FROM arktimer"):
-        if (datetime.datetime.strptime(row[3],'%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now()).total_seconds() <= 0:
+        remaining_time = (datetime.datetime.strptime(row[3],'%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now()).total_seconds()
+        if remaining_time <= 0:
             # 配列の削除
             c.execute("DELETE FROM arktimer WHERE id=?",(row[0],))
             conn.commit()
+        else:
+            loop = asyncio.get_event_loop()
+            future = loop.create_future()
+            loop.call_soon(set_before_timer, int(remaining_time/60), row, future)
+            loop.run_until_complete(future)
+            loop.close()
+
+
+async def set_before_timer(finish_time, row):
+    # 指定した時間止める
+    if not future.done():
+        await asyncio.sleep(finish_time)
+
+        # 通知の表示
+        await client.send_message(client.get_channel(row[5]), '@here `'+row[1]+'` の時間です by '+row[4]+'')
+
+        # 配列の削除
+        c.execute("DELETE FROM arktimer WHERE id = ?", (row[0],))
+        conn.commit()
 
 
 
@@ -140,8 +162,8 @@ async def on_message(message):
                 # timerlistに登録する
                 # 名前，現在のタイム，アラート終了予定タイム，入力した人
                 # Insert実行
-                ark_timerdata = ([messagelist[3], nowtime_datetime, finishtime_datetime, message.author.name])
-                c.execute("INSERT INTO arktimer (title, at_registration_time, finish_time, register_name) VALUES (?,?,?,?)", ark_timerdata)
+                ark_timerdata = ([messagelist[3], nowtime_datetime, finishtime_datetime, message.author.name, message.channel.id])
+                c.execute("INSERT INTO arktimer (title, at_registration_time, finish_time, register_name, notice_channel_id) VALUES (?,?,?,?,?)", ark_timerdata)
                 conn.commit()
 
                 # InsertしたタイマーIDの取得
@@ -220,6 +242,7 @@ async def on_message(message):
     # お知らせの追加
     #########################
     elif message.content.startswith('!ark notice'):
+        pass
         # messagelist = message.content.split(" ")
         # if len(messagelist) > 2:
         #     with open('notice.txt', 'w') as n:
