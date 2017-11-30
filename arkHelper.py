@@ -10,7 +10,7 @@ import time
 import re
 
 # version
-__version__ = '1.1.5'
+__version__ = '2.0.0'
 
 
 
@@ -19,18 +19,13 @@ client = discord.Client()
 
 # 鍵の読み込み
 KEY = None
-with open('TESTKEY.txt', 'r') as f:
+with open('KEY.txt', 'r') as f:
     KEY = f.read()
 
 # データベースの読み込み
 dbname = 'ark.db'
 conn = sqlite3.connect(dbname)
 c = conn.cursor()
-
-# 登録されたタイマーのリスト
-timerlist = []
-
-
 
 # Botが接続出来たとき
 @client.event
@@ -42,11 +37,22 @@ async def on_ready():
     if not discord.opus.is_loaded():
         discord.opus.load_opus(find_library("opus"))
 
-    #テーブルの存在確認
+    # テーブルの存在確認
+    # テーブル名の定義
     tablename = "arktimer"
     c.execute("SELECT * FROM sqlite_master WHERE type='table' and name='%s'" % tablename)
     if not c.fetchone():
-        c.execute("CREATE TABLE %s(id INTEGER, name TEXT, hp INTEGER, mp INTEGER)" % tablename)
+        # id, 名前，現在のタイム，アラート終了予定タイム，入力した人
+        c.execute("CREATE TABLE %s(id INTEGER PRIMARY KEY, title TEXT, at_registration_time TEXT, finish_time TEXT, register_name TEXT)" % tablename)
+        conn.commit()
+
+
+    # テーブル内のタイマー切れ確認
+    for row in c.execute("SELECT * FROM arktimer"):
+        if (datetime.datetime.strptime(row[3],'%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now()).total_seconds() <= 0:
+            # 配列の削除
+            c.execute("DELETE FROM arktimer WHERE id=?",(row[0],))
+            conn.commit()
 
 
 
@@ -60,7 +66,8 @@ async def on_message(message):
     # ArkTimerの使い方説明
     ####################
     if message.content.startswith('!ark help'):
-        text = '```js\n[1]!ark help - この説明文を表示する．\n\n[2]!ark link - Arkをやる上で知ってたら便利なリンク集．\n\n[3]!ark timer - ケア用のタイマー．\n"!ark timer"の後に"0~99:0~59"or"1~99h"or"1~999m"を入力することで時間を測れる．タイマーの後にタイトルも入力できる．\n\n[4]!ark timerlist - 現在のケア用タイマー一覧．\n"!ark timer"で登録したタイマーの一覧が見れる．\n\n[5](未)!ark summon - ArkHelperをボイスチャンネルに呼ぶ．\nタイマーでYoutubeの動画音声を流したい場合は呼ぶ必要あり．\n\n[6](未)!ark disconnect - ArkHelperをボイスチャンネルから退ける．\n"!ark summon"で呼んだ後，戻すときに使う．\n\n[7](未)!ark setalert - timer用のYoutube動画をセットする．\n"!ark setalert youtubeのリンク"で登録を行う．\n\n[7]!ark -v|!ark version - botのバージョンを表示する．```'
+        text = '```js\n[1]!ark help - この説明文を表示する．\n\n[2]!ark link - Arkをやる上で知ってたら便利なリンク集．\n\n[3]!ark timer - ケア用のタイマー．\n"!ark timer"の後に"0~99:0~59"or"1~9999...d/h/m/"を入力することで時間を測れる．タイマーの後にタイトルも入力できる．\n\n[4]!ark timerlist - 現在のケア用タイマー一覧．\n"!ark timer"で登録したタイマーの一覧が見れる．\n\n[5]!ark timerdel - タイマー一覧にあるタイマーを削除する．\n"!ark timerdel id/all"で登録したタイマーを削除する．allにした場合全て消えるので注意．\n\n[7]!ark -v|!ark version - botのバージョンを表示する．```'
+        # \n\n[5](未)!ark summon - ArkHelperをボイスチャンネルに呼ぶ．\nタイマーでYoutubeの動画音声を流したい場合は呼ぶ必要あり．\n\n[6](未)!ark disconnect - ArkHelperをボイスチャンネルから退ける．\n"!ark summon"で呼んだ後，戻すときに使う．\n\n[7](未)!ark setalert - timer用のYoutube動画をセットする．\n"!ark setalert youtubeのリンク"で登録を行う．
         await client.send_message(message.channel, text)
 
 
@@ -77,7 +84,7 @@ async def on_message(message):
     #########################
     # Arkのカウントダウンタイマー
     #########################
-    elif message.content.startswith('!ark timer'):
+    elif message.content.startswith('!ark timer '):
         messagelist = message.content.split(" ")
 
         if len(messagelist) > 4:
@@ -85,48 +92,77 @@ async def on_message(message):
             pass
         else:
             count_time = messagelist[2]
-            # Arktimerに使われる正規表現
+
+            # 以下の正規表現かどうかをチェック
             matchOB_hour_minutes = re.match(r"([0-9]|[0-9][0-9]):([0-9]|[0-5][0-9])", count_time)
-            matchOB_hour = re.match(r"([1-9]|[1-9][0-9])h", count_time)
-            matchOB_minutes = re.match(r"([1-9]|[1-9][0-9]|[1-9][0-9][0-9])m", count_time)
+            matchOB_hour = re.match(r"([1-9]|[1-9][0-9]*|)h", count_time)
+            matchOB_minutes = re.match(r"([1-9]|[1-9][0-9]*)m", count_time)
+            matchOB_days = re.match(r"([1-9]|[1-9][0-9]*)d", count_time)
 
-            if matchOB_hour_minutes or matchOB_hour or matchOB_minutes:
+            # タイマーのコマンドだと確認できた場合
+            if matchOB_hour_minutes or matchOB_hour or matchOB_minutes or matchOB_days:
+
                 finish_time = 0
-                if matchOB_hour:
-                    finish_time = int(count_time[:-1]) * 3600
 
-                if matchOB_minutes:
-                    finish_time = int(count_time[:-1]) * 60
-
+                # XX:XX表記
                 if matchOB_hour_minutes:
                     finish_time_list = count_time.split(":")
                     finish_time = ( int(finish_time_list[0]) * 60 + int(finish_time_list[1]) ) * 60
 
-                # 空白だった場合の処理
+                # XXd表記
+                if matchOB_days:
+                    finish_time = int(count_time[:-1]) * 60 * 60 * 24
+
+                # XXh表記
+                if matchOB_hour:
+                    finish_time = int(count_time[:-1]) * 60 * 60
+
+                # XXm表記
+                if matchOB_minutes:
+                    finish_time = int(count_time[:-1]) * 60
+
+
+                # Titleが空白だった場合の処理
                 if len(messagelist) < 4:
                     messagelist.append("無名")
 
-                # TODO: 24時間表記で記述
-                await client.send_message(message.channel, '`' + (datetime.datetime.now() + datetime.timedelta(seconds=int(finish_time))).strftime("%H:%M:%S") + '` に `'+ messagelist[3] +'` のアラートを行います')
+                # 現在の時刻を取得
+                nowtime_datetime = datetime.datetime.now()
+                # 終わる時刻を定義
+                finishtime_datetime = (nowtime_datetime + datetime.timedelta(seconds=int(finish_time)))
+
+                # 送るメッセージの作成
+                text = '`' + finishtime_datetime.strftime("%m/%d %H:%M:%S") + '` に `'+ messagelist[3] +'` のアラートを行います'
+
+                await client.send_message(message.channel,text)
 
 
+                # timerlistに登録する
+                # 名前，現在のタイム，アラート終了予定タイム，入力した人
+                # Insert実行
+                ark_timerdata = ([messagelist[3], nowtime_datetime, finishtime_datetime, message.author.name])
+                c.execute("INSERT INTO arktimer (title, at_registration_time, finish_time, register_name) VALUES (?,?,?,?)", ark_timerdata)
+                conn.commit()
 
-                nowtime = datetime.datetime.now()
+                # InsertしたタイマーIDの取得
+                timer_id = -1
+                for row in c.execute("SELECT last_insert_rowid();"):
+                    timer_id = row[0]
 
-                timerlist.append([messagelist[3], nowtime, finish_time, message.author.name])
-                # with open('timeData.txt', 'a') as f:
-                #     f.write(str(finish_time))
-
+                # 指定した時間止める
                 await asyncio.sleep(finish_time)
 
-                # ここにタイマーリストに存在するかどうかの判定を入れる
-                ####
-                await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です `by '+message.author.name+'`')
+                # タイマーリストに存在するかどうかの判定
+                c.execute("SELECT * FROM arktimer WHERE id = ?", (timer_id,))
+                if c.fetchone():
+
+                    # 通知の表示
+                    await client.send_message(message.channel, '@here `'+messagelist[3]+'` の時間です by '+message.author.mention+'')
+
 
                 # 配列の削除
-                for i , ts in enumerate(timerlist):
-                    if ts[0] == messagelist[3] and ts[1] == nowtime and ts[3] == message.author.name:
-                        del timerlist[i]
+                c.execute("DELETE FROM arktimer WHERE id = ?", (timer_id,))
+                conn.commit()
 
 
 
@@ -135,13 +171,20 @@ async def on_message(message):
     ################################
     elif message.content.startswith('!ark timerlist'):
         text = '```css\n'
-        for ts in timerlist:
-            remainingtime = (parse("0s") + datetime.timedelta(seconds=int(ts[2] - (datetime.datetime.now() - ts[1]).total_seconds()))).strftime("%H:%M:%S")
 
-            text += '・'+ts[0]+ ' by '+ ts[3] + '\n　[残り : ' + str(remainingtime) + ']\n\n'
-        text += '```'
+        # 表示するタイマーがある時
+        for row in c.execute("SELECT * from arktimer"):
+
+            remaining_time = str(datetime.datetime.strptime(row[3],'%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now()).split(".")[0]
+
+            text += '['+str(row[0])+']'+row[1]+ ' by '+ row[4] + '\n　 [残り : ' + remaining_time + ']\n\n'
+        else :
+            text += '```'
+
+        # 表示するタイマーがない時
         if text == '```css\n```':
             text = '```何も登録されていません```'
+
         await client.send_message(message.channel, text)
 
 
@@ -149,15 +192,27 @@ async def on_message(message):
     ##############################
     # 登録されているタイマーの削除を行う
     ##############################
-    elif message.content.startswith('!ark timerdel'):
+    elif message.content.startswith('!ark timerdel '):
         messagelist = message.content.split(" ")
-        for i , ts in enumerate(timerlist):
-            if messagelist[2] == ts[0]:
-                del timerlist[i]
-                await client.send_message(message.channel, messagelist[2] + 'を削除しました')
-                break
+
+        # 全削除
+        if messagelist[2] == "all":
+            c.execute("DELETE FROM arktimer")
+            conn.commit()
+            text = "現在登録されているタイマーを全て削除しました"
+            await client.send_message(message.channel, text)
+
+        # 個別削除
         else:
-            await client.send_message(message.channel, messagelist[2] + 'は見つかりませんでした')
+            for row in c.execute("SELECT * from arktimer"):
+                if (int(messagelist[2]) == row[0]):
+                    # 配列の削除
+                    c.execute("DELETE FROM arktimer WHERE id=?",(row[0],))
+                    conn.commit()
+                    await client.send_message(message.channel, '`[' + messagelist[2] + ']' + row[1] + '` を削除しました')
+                    break
+            else:
+                await client.send_message(message.channel, '`[' + messagelist[2] + ']' + row[1] + '` は見つかりませんでした')
 
 
 
@@ -165,10 +220,10 @@ async def on_message(message):
     # お知らせの追加
     #########################
     elif message.content.startswith('!ark notice'):
-        messagelist = message.content.split(" ")
-        if len(messagelist) > 2:
-            with open('notice.txt', 'w') as n:
-                n.write(message.content.replace('!ark notice ',''))
+        # messagelist = message.content.split(" ")
+        # if len(messagelist) > 2:
+        #     with open('notice.txt', 'w') as n:
+        #         n.write(message.content.replace('!ark notice ',''))
 
 
 
