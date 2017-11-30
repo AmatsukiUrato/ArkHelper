@@ -47,14 +47,10 @@ async def on_ready():
         c.execute("CREATE TABLE %s(id INTEGER PRIMARY KEY, title TEXT, at_registration_time TEXT, finish_time TEXT, register_name TEXT, notice_channel_id TEXT)" % tablename)
         conn.commit()
 
-
-    # テーブル内のタイマー切れ確認
-    # TODO:再起動後にタイマーを読み込めるようにする
+    # 再起動前のデータを削除
     for row in c.execute("SELECT * FROM arktimer"):
         c.execute("DELETE FROM arktimer")
         conn.commit()
-
-
 
 
 
